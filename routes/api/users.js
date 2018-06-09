@@ -6,6 +6,9 @@ const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
 const passport = require("passport");
 
+//Load Input Validation
+const validateRegisterInput = require("../../validation/register");
+
 //Load User model
 const User = require("../../models/User");
 
@@ -23,6 +26,12 @@ router.get("/test", (req, res) =>
 //@access Public
 
 router.post("/register", (req, res) => {
+  const { errors, isValid } = validateRegisterInput(req.body);
+  //Check Validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   //find a record that has an email that matches the users email
   User.findOne({ email: req.body.email }).then(user => {
     if (user) {
@@ -109,7 +118,11 @@ router.get(
   "/current",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    res.json({ msg: "Success" });
+    res.json({
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email
+    });
   }
 );
 
